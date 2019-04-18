@@ -20,7 +20,7 @@ class ApiController {
         make: payload.make,
         model: payload.model,
         year: payload.year,
-        trany: payload.trany,
+        trany: payload.transmission,
         drive: payload.drive
       }
     };
