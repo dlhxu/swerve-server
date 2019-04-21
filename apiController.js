@@ -1,6 +1,12 @@
+// load env vars prior to importing cloud stuff
+const dotenv = require('dotenv').config();
+
 // Import the Google Cloud client library
 const {BigQuery} = require('@google-cloud/bigquery');
-
+const googleMapsClient = require('@google/maps').createClient({
+  key: process.env.apiKey,
+  Promise: Promise
+});
 class ApiController {
   async queryBQHelper(payload){
     // Create a client
@@ -46,6 +52,42 @@ class ApiController {
     console.log(retData);
     return retData;
   }
+
+
+  directionsHelper(req, res){
+
+    // instantiate client object
+
+    // geocode location into latlng
+    geocodeWrapper();
+
+    // query maps api
+    googleMapsClient.directions({}).asPromise()// do something with the return
+    .then((response) => {
+        console.log(response.json.results);
+      })
+    .catch((err) => {
+        console.log(err);
+      });
+  }
+
+  // tutorial code
+  geocodeWrapper (req, res) {
+    googleMapsClient.geocode({address: '1600 Amphitheatre Parkway, Mountain View, CA'}).asPromise()
+      .finally(()=>{console.log("Promise ready")})
+      .then((response) => {
+        console.log(response.json.results);
+        const latlng = response.json.results[0].geometry.location;
+        res.status(200).send({
+          response: response.json.results,
+          latitude: latlng.lat,
+          longitutde: latlng.lng,
+        });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+    }
 }
 
 const apiController = new ApiController();

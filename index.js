@@ -23,4 +23,5 @@ router.post('/api/swerve-vehicle-data', async (req, res) => {
 
 });
 
+router.post('/api/sandbox/geocode', apiController.geocodeWrapper);
 export default router;
