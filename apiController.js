@@ -53,31 +53,19 @@ class ApiController {
     return retData;
   }
 
-
+  // skeleton to be filled in 
   directionsHelper(req, res){
 
-    // instantiate client object
-
-    // geocode location into latlng
-    geocodeWrapper();
-
-    // query maps api
-    googleMapsClient.directions({}).asPromise()// do something with the return
-    .then((response) => {
-        console.log(response.json.results);
-      })
-    .catch((err) => {
-        console.log(err);
-      });
   }
 
-  // tutorial code
+  // Assumes that address will be given
   geocodeWrapper (req, res) {
     googleMapsClient.geocode({address: '1600 Amphitheatre Parkway, Mountain View, CA'}).asPromise()
       .finally(()=>{console.log("Promise ready")})
       .then((response) => {
         console.log(response.json.results);
         const latlng = response.json.results[0].geometry.location;
+        return latlng;
         res.status(200).send({
           response: response.json.results,
           latitude: latlng.lat,
@@ -88,6 +76,8 @@ class ApiController {
         console.log(err);
       });
     }
+
+
 }
 
 const apiController = new ApiController();

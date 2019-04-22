@@ -24,4 +24,27 @@ router.post('/api/swerve-vehicle-data', async (req, res) => {
 });
 
 router.post('/api/sandbox/geocode', apiController.geocodeWrapper);
+
+const googleMapsClient = require('@google/maps').createClient({
+  key: process.env.apiKey,
+  Promise: Promise
+});
+
+router.post('/api/sandbox/directions', (req, res) => {
+  // query maps api
+  googleMapsClient.directions({
+    origin: 'Town Hall, Sydney, NSW',
+    destination: 'Parramatta, NSW',
+  }).asPromise()// do something with the return
+  .then((response) => {
+      console.log(response.json);
+      res.status(200).send({
+        response: response.json,
+      })
+    })
+  .catch((err) => {
+      console.log(err);
+    });
+});
+
 export default router;
