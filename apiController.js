@@ -53,9 +53,33 @@ class ApiController {
     return retData;
   }
 
-  // skeleton to be filled in 
-  directionsHelper(req, res){
+  // not yet parameterized
+  // do smth w/ response
+  async directionsHelper(){
+    googleMapsClient.directions({
+      origin: 'Town Hall, Sydney, NSW',
+      destination: 'Parramatta, NSW',
+      alternatives: true
+    }).asPromise()// do something with the return
+    .then((response) => {
+        const responseData = response.json
+        console.log(responseData);
+        var retData = []
 
+        // populate retData with data useful to return
+        for (const route of responseData.routes){
+          retData.push({
+            distance: route.legs[0].distance.value,
+            duration: route.legs[0].duration.value,
+          });
+        }
+        console.log("from directions helper: ");
+        console.log(retData);
+        return retData;
+      })
+    .catch((err) => {
+        console.log(err);
+      });
   }
 
   // Assumes that address will be given
@@ -65,17 +89,59 @@ class ApiController {
       .then((response) => {
         console.log(response.json.results);
         const latlng = response.json.results[0].geometry.location;
-        return latlng;
         res.status(200).send({
           response: response.json.results,
           latitude: latlng.lat,
           longitutde: latlng.lng,
         });
+        return latlng;
       })
       .catch((err) => {
         console.log(err);
       });
     }
+
+
+  // consumes parameters from app and controls api calls to BQ and Directions APIs,
+  //  consumes their returns and returns a price/trip for all routes in directions response
+  async priceWrapper(payload){
+    console.log('calculating route costs');
+
+    // currently hardcoded
+    const fuelPrice = 1.293;
+
+
+    console.log('getting vehicle data');
+    // get vehicle data
+    const vehicleData = await this.queryBQHelper(payload.vehicleData);
+
+    console.log('vehicle data: ');
+    console.log(vehicleData);
+
+    console.log('getting directions data')
+    // get distance and duration data
+    this.directionsHelper()
+    .then((response) => {
+      console.log(response);
+      var routeCosts = [];
+      for (const route of response){
+        routeCosts.push({
+          avgSpeed: route.distance / route.duration,
+          cost: route.distance / vehicleData.cityMileage * fuelPrice
+        });
+      }
+
+      console.log('directions data: ');
+      console.log(response);
+
+      console.log(routeCosts);
+      return routeCosts;
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+
+  }
 
 
 }
