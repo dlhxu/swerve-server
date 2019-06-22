@@ -43,7 +43,6 @@ router.post('/api/sandbox/directions', (req, res) => {
     var retData = []
     // populate retData with data useful to return
     for (const route of responseData.routes){
-      console.log(route);
       retData.push({
         distance: route.legs[0].distance.value,
         duration: route.legs[0].duration.value,
@@ -64,9 +63,21 @@ router.post('/api/sandbox/routeprice', async (req, res) => {
   const routeCosts = await apiController.priceWrapper(req.body);
   console.log(routeCosts);
 
+  // determine lowest cost route
+  var cheapest = routeCosts[0].cost;
+  var index = 0;
+  for (var i = 1; i < routeCosts.length; i++){
+    if (routeCosts[i].cost < cheapest){
+      cheapest = routeCosts[i].cost;
+      index = i;
+    }
+  }
   res.status(200).send({
-    "vehicle data": req.body.vehicleData,
-    "route costs": routeCosts,
+    "vehicleData": req.body.vehicleData,
+    "routeCosts": routeCosts,
+    "cheapestRoute": index,
+    "lowestCost": cheapest,
+    "route": routeCosts[index].steps
   });
 
 });

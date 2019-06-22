@@ -11,6 +11,7 @@ class ApiController {
   async queryBQHelper(payload){
     // Create a client
     const bigqueryClient = new BigQuery();
+    console.log("what we got from the request body");
     console.log(payload);
     const sqlQuery = `SELECT city08, highway08
   	 FROM \`hack-lassonde.hack_lassonde.vehicle_data\`
@@ -30,6 +31,7 @@ class ApiController {
         drive: payload.drive
       }
     };
+    console.log("currently in options.params: ");
     console.log(options.params);
     // Run the query
     const [rows] = await bigqueryClient.query(options);
@@ -56,7 +58,7 @@ class ApiController {
   // not yet parameterized
   // do smth w/ response
   async directionsHelper(){
-    googleMapsClient.directions({
+    return googleMapsClient.directions({
       origin: 'Town Hall, Sydney, NSW',
       destination: 'Parramatta, NSW',
       alternatives: true
@@ -71,10 +73,12 @@ class ApiController {
           retData.push({
             distance: route.legs[0].distance.value,
             duration: route.legs[0].duration.value,
+            steps: route.legs[0].steps
           });
         }
         console.log("from directions helper: ");
         console.log(retData);
+
         return retData;
       })
     .catch((err) => {
@@ -119,28 +123,24 @@ class ApiController {
     console.log(vehicleData);
 
     console.log('getting directions data')
-    // get distance and duration data
-    this.directionsHelper()
-    .then((response) => {
-      console.log(response);
-      var routeCosts = [];
-      for (const route of response){
-        routeCosts.push({
-          avgSpeed: route.distance / route.duration,
-          cost: route.distance / vehicleData.cityMileage * fuelPrice
-        });
-      }
+    const directionsData = await this.directionsHelper();
+    console.log(directionsData.routes);
 
-      console.log('directions data: ');
-      console.log(response);
+    var routeCosts = [];
+    for (const route of directionsData){
+      routeCosts.push({
+        avgSpeed: route.distance / route.duration + ' m/s',
+        cost: (route.distance * 1/vehicleData.cityMileage * 1/1609.34 * 3.785 * fuelPrice),
+        steps: route.steps
+      });
+    }
 
-      console.log(routeCosts);
-      return routeCosts;
-    })
-    .catch((error) => {
-      console.log(error);
-    });
+     console.log('directions data: ');
+     console.log(directionsData);
 
+     console.log('route costs: ');
+     console.log(routeCosts);
+     return routeCosts;
   }
 
 
